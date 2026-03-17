@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResumeIQ — AI Resume Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --white:#ffffff;--off:#f7f6f3;--off2:#f0efe9;
+  --ink:#1a1a18;--ink2:#3d3d38;--ink3:#6e6e66;--ink4:#a8a89e;
+  --line:#e4e3dd;--line2:#d0cfc7;
+  --sage:#2d6a4f;--sage2:#40916c;--sage3:#d8f3dc;--sage4:#b7e4c7;
+  --amber:#b45309;--amber2:#fef3c7;--amber3:#fde68a;
+  --rose:#be123c;--rose2:#fff1f2;
+  --blue:#1d4ed8;--blue2:#eff6ff;--blue3:#bfdbfe;
+  --mono:'DM Mono',monospace;
+  --serif:'Fraunces',serif;
+  --sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--off);color:var(--ink);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:var(--white);border-bottom:1px solid var(--line);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;gap:20px}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.nav-logo-box{width:30px;height:30px;background:var(--ink);display:flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0}
+.nav-logo-box svg{width:16px;height:16px}
+.nav-logo-name{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--ink)}
+.nav-logo-name span{color:var(--sage2)}
+.nav-center{display:flex;gap:4px}
+.nav-link{font-size:13px;color:var(--ink3);padding:5px 12px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:none;background:none;font-family:var(--sans)}
+.nav-link:hover{background:var(--off);color:var(--ink)}
+.nav-link.active{background:var(--off2);color:var(--ink);font-weight:500}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--sage2);background:var(--sage3);padding:4px 10px;border-radius:100px}
+.nav-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--sage2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.btn-nav{font-family:var(--mono);font-size:11px;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;background:var(--ink);color:white;transition:all 0.15s}
+.btn-nav:hover{background:var(--ink2)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--white);border-right:1px solid var(--line);padding:20px 12px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.sb-section{margin-bottom:4px}
+.sb-label{font-family:var(--mono);font-size:10px;color:var(--ink4);letter-spacing:0.8px;text-transform:uppercase;padding:8px 10px 4px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:all 0.15s;font-size:13px;color:var(--ink2);border:none;background:none;width:100%;text-align:left;font-family:var(--sans)}
+.sb-item:hover{background:var(--off);color:var(--ink)}
+.sb-item.active{background:var(--ink);color:white;font-weight:500}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;opacity:0.7}
+.sb-item.active svg{opacity:1}
+.sb-badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--off2);color:var(--ink3);padding:1px 7px;border-radius:100px;min-width:20px;text-align:center}
+.sb-item.active .sb-badge{background:rgba(255,255,255,0.2);color:white}
+.sb-divider{height:1px;background:var(--line);margin:8px 10px}
+.sb-footer{margin-top:auto;padding:12px 10px;border-top:1px solid var(--line)}
+.sb-footer-text{font-family:var(--mono);font-size:10px;color:var(--ink4);line-height:1.6}
+
+/* MAIN */
+.main{overflow-y:auto}
+.panel{display:none;padding:32px 40px;max-width:1080px}
+.panel.active{display:block}
+
+/* PAGE HEADER */
+.ph{margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.ph-left{}
+.ph-title{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.ph-sub{font-size:13px;color:var(--ink3)}
+.ph-right{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-card{background:var(--white);border:1px solid var(--line);padding:16px 20px;border-radius:8px}
+.stat-n{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--ink);display:block;line-height:1.1}
+.stat-l{font-family:var(--mono);font-size:10px;color:var(--ink4);margin-top:4px;display:block;letter-spacing:0.5px}
+.stat-change{font-family:var(--mono);font-size:10px;color:var(--sage2);margin-top:6px;display:block}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600;color:var(--ink)}
+.card-sub{font-size:12px;color:var(--ink4);margin-top:2px}
+.card-body{padding:20px}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-grid.c1{grid-template-columns:1fr}
+.form-grid.c3{grid-template-columns:1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.5px}
+.fg input,.fg textarea,.fg select{background:var(--off);border:1px solid var(--line2);color:var(--ink);font-family:var(--sans);font-size:14px;padding:9px 12px;outline:none;transition:all 0.15s;resize:vertical;border-radius:6px}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--sage2);background:white;box-shadow:0 0 0 3px rgba(64,145,108,0.1)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--ink4)}
+
+/* BUTTONS */
+.btn{font-family:var(--mono);font-size:11px;font-weight:500;padding:9px 20px;border:none;cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;border-radius:6px;display:inline-flex;align-items:center;gap:7px}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--ink);color:white}
+.btn-primary:hover{background:var(--ink2);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,0.15)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-sage{background:var(--sage2);color:white}
+.btn-sage:hover{background:var(--sage);transform:translateY(-1px);box-shadow:0 3px 10px rgba(45,106,79,0.2)}
+.btn-sage:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1px solid var(--line2);color:var(--ink2)}
+.btn-outline:hover{border-color:var(--ink);background:var(--off)}
+.btn-ghost{background:transparent;color:var(--ink3);border:none}
+.btn-ghost:hover{color:var(--ink);background:var(--off)}
+.btn-danger{background:transparent;border:1px solid var(--rose);color:var(--rose)}
+.btn-danger:hover{background:var(--rose);color:white}
+.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* JOB LIST */
+.job-table{width:100%;border-collapse:collapse}
+.job-table th{font-family:var(--mono);font-size:10px;color:var(--ink4);letter-spacing:0.5px;text-transform:uppercase;padding:10px 14px;background:var(--off);border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.job-table td{padding:14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink2);vertical-align:middle}
+.job-table tr:last-child td{border-bottom:none}
+.job-table tbody tr{transition:background 0.1s;cursor:pointer}
+.job-table tbody tr:hover td{background:var(--off)}
+.job-title-cell{font-weight:500;color:var(--ink);font-size:14px}
+.job-desc-cell{color:var(--ink4);font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:100px;letter-spacing:0.3px;display:inline-block}
+.chip-green{background:var(--sage3);color:var(--sage)}
+.chip-amber{background:var(--amber2);color:var(--amber)}
+.chip-blue{background:var(--blue2);color:var(--blue)}
+
+/* UPLOAD */
+.drop-zone{border:2px dashed var(--line2);padding:36px 24px;text-align:center;cursor:pointer;transition:all 0.2s;border-radius:8px;background:var(--off);margin-bottom:16px;position:relative}
+.drop-zone:hover,.drop-zone.over{border-color:var(--sage2);background:var(--sage3)}
+.dz-illustration{width:64px;height:64px;background:var(--off2);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:1px solid var(--line)}
+.dz-illustration svg{width:28px;height:28px;stroke:var(--ink3)}
+.dz-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.dz-sub{font-size:12px;color:var(--ink4)}
+.dz-types{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.dz-type{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--white);border:1px solid var(--line);color:var(--ink3)}
+
+/* RESUME LIST */
+.resume-list{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:white}
+.resume-item{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;transition:background 0.1s}
+.resume-item:last-child{border-bottom:none}
+.resume-item:hover{background:var(--off)}
+.ri-avatar{width:36px;height:36px;border-radius:8px;background:var(--off2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;font-weight:600;color:var(--ink2);flex-shrink:0}
+.ri-info{flex:1}
+.ri-name{font-size:13px;font-weight:500;color:var(--ink)}
+.ri-meta{font-family:var(--mono);font-size:10px;color:var(--ink4);margin-top:2px}
+.ri-score{font-family:var(--serif);font-size:18px;font-weight:600;min-width:56px;text-align:right}
+.ri-score.high{color:var(--sage2)}
+.ri-score.mid{color:var(--amber)}
+.ri-score.low{color:var(--rose)}
+.ri-score.none{color:var(--ink4);font-size:14px}
+
+/* RESULTS */
+.result-card{background:white;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px;transition:box-shadow 0.2s}
+.result-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+.result-card.top{border-color:var(--amber3);box-shadow:0 0 0 2px var(--amber2)}
+.rc-header{padding:18px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--line)}
+.rc-rank-badge{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:18px;font-weight:600;flex-shrink:0}
+.rc-rank-badge.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:white}
+.rc-rank-badge.r2{background:var(--off2);color:var(--ink3)}
+.rc-rank-badge.r3{background:var(--amber2);color:var(--amber)}
+.rc-rank-badge.rn{background:var(--off);color:var(--ink4)}
+.rc-info{flex:1}
+.rc-name{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.rc-meta{font-family:var(--mono);font-size:11px;color:var(--ink4)}
+.rc-score-block{text-align:right}
+.rc-score-big{font-family:var(--serif);font-size:40px;font-weight:600;line-height:1;display:block}
+.rc-score-big.high{color:var(--sage2)}
+.rc-score-big.mid{color:var(--amber)}
+.rc-score-big.low{color:var(--rose)}
+.rc-score-label{font-family:var(--mono);font-size:10px;color:var(--ink4);letter-spacing:0.5px}
+.rc-progress{height:4px;background:var(--line)}
+.rc-bar{height:100%;width:0;transition:width 1.4s cubic-bezier(0.4,0,0.2,1);border-radius:0 2px 2px 0}
+.rc-bar.high{background:linear-gradient(90deg,var(--sage2),#06b6d4)}
+.rc-bar.mid{background:linear-gradient(90deg,var(--amber),#fbbf24)}
+.rc-bar.low{background:linear-gradient(90deg,var(--rose),var(--amber))}
+.rc-body{padding:18px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.kw-section{}
+.kw-label{font-family:var(--mono);font-size:10px;color:var(--ink4);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kw-pills{display:flex;flex-wrap:wrap;gap:5px}
+.kw-pill{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:100px}
+.kw-pill.match{background:var(--sage3);color:var(--sage)}
+.kw-pill.miss{background:var(--rose2);color:var(--rose)}
+.verdict{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:100px;letter-spacing:0.3px}
+.verdict.hire{background:var(--sage3);color:var(--sage)}
+.verdict.maybe{background:var(--amber2);color:var(--amber)}
+.verdict.pass{background:var(--rose2);color:var(--rose)}
+
+/* DASHBOARD CHARTS */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.mini-chart{background:white;border:1px solid var(--line);border-radius:8px;padding:16px 20px}
+.mc-title{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.mc-sub{font-family:var(--mono);font-size:10px;color:var(--ink4);margin-bottom:16px}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;transition:height 1s ease;min-height:2px}
+.bar-fill.green{background:var(--sage3);border:1px solid var(--sage4)}
+.bar-fill.active{background:var(--sage2)}
+.bar-lbl{font-family:var(--mono);font-size:9px;color:var(--ink4)}
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut{position:relative;width:80px;height:80px;flex-shrink:0}
+.donut svg{transform:rotate(-90deg)}
+.donut-legend{display:flex;flex-direction:column;gap:6px}
+.dl-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.activity-list{display:flex;flex-direction:column;gap:0}
+.activity-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.activity-item:last-child{border-bottom:none}
+.ai-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ai-text{flex:1;color:var(--ink2)}
+.ai-time{font-family:var(--mono);font-size:10px;color:var(--ink4)}
+.ai-score{font-family:var(--mono);font-size:11px;font-weight:500}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:white;border:1px solid var(--line);border-radius:12px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--serif);font-size:18px;font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--ink3);font-size:20px;padding:4px;border-radius:4px;line-height:1}
+.modal-close:hover{background:var(--off);color:var(--ink)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+
+/* EMPTY + LOADING */
+.empty{text-align:center;padding:60px 32px}
+.empty-icon{width:56px;height:56px;background:var(--off2);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:1px solid var(--line)}
+.empty-icon svg{width:24px;height:24px;stroke:var(--ink4);fill:none}
+.empty-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--ink4);max-width:280px;margin:0 auto}
+.loading{display:none;align-items:center;justify-content:center;gap:10px;padding:48px}
+.loading.show{display:flex}
+.spinner{width:18px;height:18px;border:2px solid var(--line2);border-top-color:var(--sage2);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:var(--mono);font-size:12px;color:var(--ink4)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{font-family:var(--mono);font-size:11px;padding:11px 16px;border:1px solid;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.1);animation:toastIn 0.2s ease;min-width:220px;border-radius:8px;display:flex;align-items:center;gap:8px}
+.toast::before{width:6px;height:6px;border-radius:50%;flex-shrink:0;content:''}
+.toast.success{border-color:var(--sage4);color:var(--sage)}
+.toast.success::before{background:var(--sage2)}
+.toast.error{border-color:#fca5a5;color:var(--rose)}
+.toast.error::before{background:var(--rose)}
+.toast.info{border-color:var(--blue3);color:var(--blue)}
+.toast.info::before{background:var(--blue)}
+@keyframes toastIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+
+/* SCORE GAUGE */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.gauge-arc{transform:rotate(-90deg)}
+
+/* TOOLTIP */
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:white;font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:100}
+[data-tip]:hover::after{opacity:1}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.panel{padding:20px}.stats-row{grid-template-columns:1fr 1fr}.chart-grid{grid-template-columns:1fr}.rc-body{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    </div>
+    <span class="nav-logo-name">Resume<span>IQ</span></span>
+  </a>
+  <div class="nav-center">
+    <button class="nav-link active" onclick="switchPanel('dashboard',this)">Dashboard</button>
+    <button class="nav-link" onclick="switchPanel('jobs',this)">Jobs</button>
+    <button class="nav-link" onclick="switchPanel('screen',this)">Screen</button>
+    <button class="nav-link" onclick="switchPanel('results',this)">Results</button>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge"><span class="nav-badge-dot"></span>API Live</div>
+    <button class="btn-nav" onclick="openModal('modalPost')">+ Post Job</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">Overview</div>
+    <button class="sb-item active" onclick="switchPanel('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="sb-item" onclick="switchPanel('jobs',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      All Jobs
+      <span class="sb-badge" id="sb-jobs-count">0</span>
+    </button>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <div class="sb-label">Screening</div>
+    <button class="sb-item" onclick="switchPanel('screen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Upload Resumes
+    </button>
+    <button class="sb-item" onclick="switchPanel('results',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      View Results
+    </button>
+    <button class="sb-item" onclick="switchPanel('compare',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10m-6 10V4m-6 16v-6"/></svg>
+      Compare Candidates
+    </button>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <div class="sb-label">Actions</div>
+    <button class="sb-item" onclick="openModal('modalPost')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Post New Job
+    </button>
+    <button class="sb-item" onclick="exportResults()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Results
+    </button>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-footer-text">Built with Flask · scikit-learn · TF-IDF<br>by Subhashree Senapati</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="panel active" id="panel-dashboard">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Dashboard</div>
+      <div class="ph-sub">Overview of all screening activity</div>
+    </div>
+    <div class="ph-right">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink4)" id="dash-date"></span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-n" id="d-jobs">0</span>
+      <span class="stat-l">Total Jobs</span>
+      <span class="stat-change">Active openings</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n" id="d-resumes">0</span>
+      <span class="stat-l">Resumes Uploaded</span>
+      <span class="stat-change">Across all jobs</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n" id="d-screened">0</span>
+      <span class="stat-l">Screened</span>
+      <span class="stat-change">With AI scores</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-n" id="d-tophit">—</span>
+      <span class="stat-l">Top Match Score</span>
+      <span class="stat-change">Best candidate</span>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="mini-chart">
+      <div class="mc-title">Score Distribution</div>
+      <div class="mc-sub">How candidates are scoring across all jobs</div>
+      <div class="bar-chart" id="scoreChart">
+        <div class="bar-col"><div class="bar-fill green active" style="height:0%" data-h="20%"></div><div class="bar-lbl">0-20</div></div>
+        <div class="bar-col"><div class="bar-fill green" style="height:0%" data-h="15%"></div><div class="bar-lbl">20-40</div></div>
+        <div class="bar-col"><div class="bar-fill green active" style="height:0%" data-h="45%"></div><div class="bar-lbl">40-60</div></div>
+        <div class="bar-col"><div class="bar-fill green active" style="height:0%" data-h="70%"></div><div class="bar-lbl">60-80</div></div>
+        <div class="bar-col"><div class="bar-fill green" style="height:0%" data-h="30%"></div><div class="bar-lbl">80-100</div></div>
+      </div>
+    </div>
+    <div class="mini-chart">
+      <div class="mc-title">Screening Status</div>
+      <div class="mc-sub">Resume processing breakdown</div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <svg width="80" height="80" viewBox="0 0 80 80" class="gauge-arc">
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#e4e3dd" stroke-width="8"/>
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#40916c" stroke-width="8" stroke-dasharray="201" stroke-dashoffset="80" stroke-linecap="round" id="donutArc"/>
+          </svg>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-item"><span class="dl-dot" style="background:var(--sage2)"></span>Screened <strong id="dl-scored">0</strong></div>
+          <div class="dl-item"><span class="dl-dot" style="background:var(--amber)"></span>Queued <strong id="dl-queued">0</strong></div>
+          <div class="dl-item"><span class="dl-dot" style="background:var(--line2)"></span>Total <strong id="dl-total">0</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Recent Activity</div>
+        <div class="card-sub">Latest screening events</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0 20px">
+      <div class="activity-list" id="activityList">
+        <div class="activity-item"><span class="ai-dot" style="background:var(--line2)"></span><span class="ai-text" style="color:var(--ink4)">No activity yet — post a job to get started</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JOBS -->
+<div class="panel" id="panel-jobs">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">All Jobs</div>
+      <div class="ph-sub">Manage your open positions</div>
+    </div>
+    <div class="ph-right">
+      <button class="btn btn-primary" onclick="openModal('modalPost')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Post Job
+      </button>
+    </div>
+  </div>
+  <div class="card" style="padding:0">
+    <div id="jobsTable"><div class="loading show"><div class="spinner"></div><div class="loading-text">Loading jobs...</div></div></div>
+  </div>
+</div>
+
+<!-- SCREEN -->
+<div class="panel" id="panel-screen">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Upload Resumes</div>
+      <div class="ph-sub">Add candidates for a specific role</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Select Job Opening</div></div>
+    <div class="card-body">
+      <div class="form-grid c1">
+        <div class="fg">
+          <label>Job Position</label>
+          <select id="screenJob" onchange="loadResumes()">
+            <option value="">— Select a job to screen for —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Upload Resume</div>
+        <div class="card-sub">PDF or paste text manually</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="dzOver(event)" ondragleave="dzOut()" ondrop="dzDrop(event)">
+        <div class="dz-illustration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        </div>
+        <div class="dz-title">Drop resume here to upload</div>
+        <div class="dz-sub">or click to browse files</div>
+        <div class="dz-types"><span class="dz-type">PDF</span><span class="dz-type">TXT</span></div>
+        <input type="file" id="fileInput" accept=".pdf,.txt" style="display:none" onchange="fileSelected(event)">
+      </div>
+      <div class="form-grid">
+        <div class="fg">
+          <label>Candidate Name</label>
+          <input type="text" id="candName" placeholder="Full name">
+        </div>
+        <div class="fg">
+          <label>Email (optional)</label>
+          <input type="email" id="candEmail" placeholder="candidate@email.com">
+        </div>
+      </div>
+      <div class="form-grid c1">
+        <div class="fg">
+          <label>Or Paste Resume Text</label>
+          <textarea id="candText" rows="5" placeholder="Paste the full resume content here if no PDF..."></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="uploadText()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Text
+        </button>
+        <button class="btn btn-sage" id="screenBtn" onclick="doScreen()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Screen All Resumes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resumeListWrap"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="panel" id="panel-results">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Screening Results</div>
+      <div class="ph-sub">AI-ranked candidates with keyword analysis</div>
+    </div>
+    <div class="ph-right">
+      <div class="fg" style="min-width:220px">
+        <label>Job Position</label>
+        <select id="resultsJob" onchange="loadResults()">
+          <option value="">— Select a job —</option>
+        </select>
+      </div>
+      <button class="btn btn-outline" onclick="exportResults()" data-tip="Download as CSV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+  <div id="resultsList">
+    <div class="empty">
+      <div class="empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="empty-title">No results yet</div>
+      <div class="empty-sub">Select a job and screen resumes to see ranked candidates</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="panel" id="panel-compare">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Compare Candidates</div>
+      <div class="ph-sub">Side-by-side keyword analysis</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Select Job & Candidates</div></div>
+    <div class="card-body">
+      <div class="form-grid c3">
+        <div class="fg">
+          <label>Job Position</label>
+          <select id="compareJob" onchange="loadCompareOptions()">
+            <option value="">— Select job —</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Candidate A</label>
+          <select id="compareA"><option value="">— Select —</option></select>
+        </div>
+        <div class="fg">
+          <label>Candidate B</label>
+          <select id="compareB"><option value="">— Select —</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="doCompare()">Compare →</button>
+    </div>
+  </div>
+  <div id="compareResult"></div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end layout -->
+
+<!-- MODAL: POST JOB -->
+<div class="modal-overlay" id="modalPost" onclick="closeModalOutside(event,'modalPost')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Post a New Job</div>
+      <button class="modal-close" onclick="closeModal('modalPost')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:14px">
+        <label>Job Title *</label>
+        <input type="text" id="mJobTitle" placeholder="e.g. Backend Engineer, Python Developer...">
+      </div>
+      <div class="form-grid">
+        <div class="fg">
+          <label>Department</label>
+          <input type="text" id="mJobDept" placeholder="Engineering">
+        </div>
+        <div class="fg">
+          <label>Location</label>
+          <input type="text" id="mJobLoc" placeholder="Remote / Bengaluru">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Job Description *</label>
+        <textarea id="mJobDesc" rows="9" placeholder="Paste the full job description. Include required skills, tech stack, responsibilities, and experience level. More detail = better AI scoring accuracy.&#10;&#10;Example: We are looking for a Backend Engineer with 2+ years experience in Node.js, Express, MySQL, REST APIs, JWT authentication..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalPost')">Cancel</button>
+      <button class="btn btn-primary" id="mPostBtn" onclick="postJob()">Post Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const API = 'http://127.0.0.1:5000/api';
+let activity = [];
+let allResults = {};
+
+// ── INIT
+document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+loadDashboard();
+
+// ── PANEL SWITCH
+function switchPanel(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item,.nav-link').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='jobs') loadJobsTable();
+  if(id==='screen'){ loadSel('screenJob'); loadResumes(); }
+  if(id==='results'){ loadSel('resultsJob'); }
+  if(id==='compare'){ loadSel('compareJob'); }
+  if(id==='dashboard') loadDashboard();
+}
+
+// ── TOAST
+function toast(msg,type='info'){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=msg;
+  w.appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+// ── MODAL
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModalOutside(e,id){ if(e.target.id===id) closeModal(id); }
+
+// ── DASHBOARD
+async function loadDashboard(){
+  try{
+    const r=await fetch(`${API}/jobs`);
+    const d=await r.json();
+    const jobs=d.jobs||[];
+    document.getElementById('d-jobs').textContent=jobs.length;
+    document.getElementById('sb-jobs-count').textContent=jobs.length;
+    document.getElementById('d-jobs').textContent=jobs.length;
+
+    let totalR=0,totalS=0,topScore=0;
+    const acts=[];
+
+    for(const j of jobs){
+      try{
+        const rr=await fetch(`${API}/jobs/${j.id}/resumes`);
+        const dd=await rr.json();
+        const resumes=dd.resumes||[];
+        totalR+=resumes.length;
+        resumes.forEach(r=>{
+          if(r.status==='scored'){ totalS++; if(r.score>topScore) topScore=r.score; }
+          acts.push({name:r.name||'Unknown',score:r.score,status:r.status,job:j.title,time:r.created_at});
+        });
+      }catch(e){}
+    }
+
+    document.getElementById('d-resumes').textContent=totalR;
+    document.getElementById('d-screened').textContent=totalS;
+    document.getElementById('d-tophit').textContent=topScore?topScore.toFixed(1)+'%':'—';
+    document.getElementById('dl-scored').textContent=totalS;
+    document.getElementById('dl-queued').textContent=totalR-totalS;
+    document.getElementById('dl-total').textContent=totalR;
+
+    // Donut
+    if(totalR>0){
+      const pct=totalS/totalR;
+      const circ=201;
+      document.getElementById('donutArc').setAttribute('stroke-dashoffset', circ-(circ*pct));
+    }
+
+    // Activity
+    const al=document.getElementById('activityList');
+    acts.sort((a,b)=>new Date(b.time)-new Date(a.time));
+    if(acts.length){
+      al.innerHTML=acts.slice(0,6).map(a=>`
+        <div class="activity-item">
+          <span class="ai-dot" style="background:${a.status==='scored'?'var(--sage2)':'var(--amber)'}"></span>
+          <span class="ai-text"><strong>${a.name}</strong> uploaded for <em>${a.job}</em></span>
+          ${a.score?`<span class="ai-score" style="color:${a.score>=60?'var(--sage2)':a.score>=30?'var(--amber)':'var(--rose)'}">${parseFloat(a.score).toFixed(1)}%</span>`:'<span class="chip chip-amber">queued</span>'}
+          <span class="ai-time">${timeAgo(a.time)}</span>
+        </div>`).join('');
+    }
+
+    // Animate bars
+    setTimeout(()=>{
+      document.querySelectorAll('#scoreChart .bar-fill').forEach(b=>{
+        b.style.height=b.dataset.h;
+      });
+    },200);
+
+  }catch(e){ console.error(e); }
+}
+
+function timeAgo(ts){
+  if(!ts) return '';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=Math.floor(diff/60000);
+  if(m<1) return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h=Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+
+// ── JOBS TABLE
+async function loadJobsTable(){
+  const el=document.getElementById('jobsTable');
+  el.innerHTML='<div class="loading show"><div class="spinner"></div><div class="loading-text">Loading...</div></div>';
+  try{
+    const r=await fetch(`${API}/jobs`);
+    const d=await r.json();
+    const jobs=d.jobs||[];
+    if(!jobs.length){
+      el.innerHTML=`<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div class="empty-title">No jobs posted yet</div><div class="empty-sub">Post your first job to start screening resumes</div></div>`;
+      return;
+    }
+    el.innerHTML=`<table class="job-table">
+      <thead><tr><th>#</th><th>Position</th><th>Description</th><th>Posted</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${jobs.map((j,i)=>`
+        <tr>
+          <td style="color:var(--ink4);font-family:var(--mono);font-size:11px">${String(i+1).padStart(2,'0')}</td>
+          <td><div class="job-title-cell">${j.title}</div></td>
+          <td><div class="job-desc-cell">${j.description}</div></td>
+          <td style="font-family:var(--mono);font-size:11px;color:var(--ink4)">${new Date(j.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</td>
+          <td><span class="chip chip-green">Active</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline" style="padding:5px 12px;font-size:10px" onclick="goScreen(${j.id})">Upload</button>
+              <button class="btn btn-sage" style="padding:5px 12px;font-size:10px" onclick="quickScreen(${j.id})">Screen →</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }catch(e){
+    el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-title">Cannot connect to API</div><div class="empty-sub">Make sure the Flask server is running on port 5000</div></div>';
+  }
+}
+
+function goScreen(id){
+  switchPanel('screen', document.querySelectorAll('.sb-item')[2]);
+  setTimeout(()=>{ document.getElementById('screenJob').value=id; loadResumes(); },100);
+}
+
+async function quickScreen(id){
+  await screenJob(id);
+  switchPanel('results', document.querySelectorAll('.sb-item')[3]);
+  setTimeout(()=>{ document.getElementById('resultsJob').value=id; loadResults(); },200);
+}
+
+// ── POST JOB
+async function postJob(){
+  const title=document.getElementById('mJobTitle').value.trim();
+  const desc=document.getElementById('mJobDesc').value.trim();
+  if(!title||!desc){ toast('Title and description are required','error'); return; }
+  const btn=document.getElementById('mPostBtn');
+  btn.disabled=true; btn.textContent='Posting...';
+  try{
+    const r=await fetch(`${API}/jobs`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,description:desc})});
+    const d=await r.json();
+    toast(`Job posted — ID #${d.job_id}`,'success');
+    closeModal('modalPost');
+    document.getElementById('mJobTitle').value='';
+    document.getElementById('mJobDesc').value='';
+    document.getElementById('mJobDept').value='';
+    document.getElementById('mJobLoc').value='';
+    activity.unshift({text:`New job posted: ${title}`,time:'just now',color:'var(--blue)'});
+    loadDashboard();
+  }catch(e){ toast('Failed to post job','error'); }
+  btn.disabled=false; btn.textContent='Post Job';
+}
+
+// ── SELECT HELPER
+async function loadSel(id){
+  const sel=document.getElementById(id);
+  try{
+    const r=await fetch(`${API}/jobs`);
+    const d=await r.json();
+    const cur=sel.value;
+    sel.innerHTML='<option value="">— Select a job —</option>'+(d.jobs||[]).map(j=>`<option value="${j.id}">${j.title}</option>`).join('');
+    if(cur) sel.value=cur;
+  }catch(e){}
+}
+
+// ── DRAG DROP
+function dzOver(e){ e.preventDefault(); document.getElementById('dropZone').classList.add('over'); }
+function dzOut(){ document.getElementById('dropZone').classList.remove('over'); }
+function dzDrop(e){ e.preventDefault(); dzOut(); handleFile(e.dataTransfer.files[0]); }
+function fileSelected(e){ handleFile(e.target.files[0]); }
+
+async function handleFile(file){
+  if(!file) return;
+  const jobId=document.getElementById('screenJob').value;
+  if(!jobId){ toast('Select a job first','error'); return; }
+  const name=document.getElementById('candName').value.trim()||file.name.replace(/\.(pdf|txt)$/i,'');
+  toast('Uploading resume...','info');
+  const form=new FormData();
+  form.append('file',file);
+  form.append('name',name);
+  try{
+    await fetch(`${API}/jobs/${jobId}/resumes`,{method:'POST',body:form});
+    toast(`${name} uploaded successfully`,'success');
+    document.getElementById('candName').value='';
+    document.getElementById('fileInput').value='';
+    loadResumes();
+  }catch(e){ toast('Upload failed','error'); }
+}
+
+async function uploadText(){
+  const jobId=document.getElementById('screenJob').value;
+  const name=document.getElementById('candName').value.trim();
+  const text=document.getElementById('candText').value.trim();
+  if(!jobId){ toast('Select a job first','error'); return; }
+  if(!name){ toast('Enter candidate name','error'); return; }
+  if(!text){ toast('Enter resume text or upload a file','error'); return; }
+  try{
+    await fetch(`${API}/jobs/${jobId}/resumes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,content:text})});
+    toast(`${name} uploaded`,'success');
+    document.getElementById('candName').value='';
+    document.getElementById('candText').value='';
+    loadResumes();
+  }catch(e){ toast('Upload failed','error'); }
+}
+
+async function loadResumes(){
+  const jobId=document.getElementById('screenJob').value;
+  const el=document.getElementById('resumeListWrap');
+  if(!jobId){ el.innerHTML=''; return; }
+  try{
+    const r=await fetch(`${API}/jobs/${jobId}/resumes`);
+    const d=await r.json();
+    const resumes=d.resumes||[];
+    if(!resumes.length){
+      el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="empty-title">No resumes yet</div><div class="empty-sub">Upload the first resume for this position</div></div>';
+      return;
+    }
+    el.innerHTML=`<div class="card" style="padding:0">
+      <div class="card-header"><div class="card-title">Uploaded Resumes</div><div style="font-family:var(--mono);font-size:11px;color:var(--ink4)">${resumes.length} candidate${resumes.length!==1?'s':''}</div></div>
+      <div class="resume-list">${resumes.map(r=>{
+        const initials=(r.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        const s=parseFloat(r.score)||0;
+        const cls=s>=60?'high':s>=30?'mid':s>0?'low':'none';
+        return `<div class="resume-item">
+          <div class="ri-avatar">${initials}</div>
+          <div class="ri-info">
+            <div class="ri-name">${r.name||'Unknown'}</div>
+            <div class="ri-meta">Uploaded ${timeAgo(r.created_at)}</div>
+          </div>
+          <span class="chip ${r.status==='scored'?'chip-green':'chip-amber'}">${r.status}</span>
+          <div class="ri-score ${cls}">${s>0?s.toFixed(1)+'%':'—'}</div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }catch(e){}
+}
+
+async function doScreen(){
+  const jobId=document.getElementById('screenJob').value;
+  if(!jobId){ toast('Select a job first','error'); return; }
+  await screenJob(jobId);
+  loadResumes();
+  setTimeout(()=>{
+    switchPanel('results', document.querySelectorAll('.sb-item')[3]);
+    document.getElementById('resultsJob').value=jobId;
+    loadResults();
+  },300);
+}
+
+async function screenJob(jobId){
+  toast('Screening resumes with AI...','info');
+  const btn=document.getElementById('screenBtn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<div class="spinner"></div>Screening...'; }
+  try{
+    const r=await fetch(`${API}/jobs/${jobId}/screen`,{method:'POST'});
+    const d=await r.json();
+    allResults[jobId]=d.results;
+    toast(`Screened ${d.total_resumes} resumes successfully`,'success');
+    loadDashboard();
+  }catch(e){ toast('Screening failed — check server','error'); }
+  if(btn){ btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Screen All Resumes'; }
+}
+
+async function loadResults(){
+  const jobId=document.getElementById('resultsJob').value;
+  const el=document.getElementById('resultsList');
+  if(!jobId){
+    el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-title">Select a job</div><div class="empty-sub">Choose a job to view screening results</div></div>';
+    return;
+  }
+  el.innerHTML='<div class="loading show"><div class="spinner"></div><div class="loading-text">Loading results...</div></div>';
+  try{
+    const r=await fetch(`${API}/jobs/${jobId}/results`);
+    const d=await r.json();
+    const results=d.results||[];
+    if(!results.length){
+      el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-title">No results yet</div><div class="empty-sub">Upload resumes and click Screen to generate results</div></div>';
+      return;
+    }
+    el.innerHTML=results.map((r,i)=>{
+      const rank=r.rank_pos||i+1;
+      const score=parseFloat(r.score)||0;
+      const cls=score>=60?'high':score>=30?'mid':'low';
+      const rCls=rank===1?'r1':rank===2?'r2':rank===3?'r3':'rn';
+      const verdict=score>=60?'Strong Hire':score>=30?'Consider':'Not a Fit';
+      const vCls=score>=60?'hire':score>=30?'maybe':'pass';
+      const matched=r.matched_keywords||[];
+      const missing=r.missing_keywords||[];
+      const initials=(r.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      return `<div class="result-card ${rank===1?'top':''}" style="animation:fadeUp 0.4s ${i*0.08}s both">
+        <div class="rc-header">
+          <div class="rc-rank-badge ${rCls}">${rank}</div>
+          <div class="rc-info">
+            <div class="rc-name">
+              <div style="width:32px;height:32px;border-radius:6px;background:var(--off2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;font-weight:600;color:var(--ink2);flex-shrink:0">${initials}</div>
+              ${r.name||'Unknown'}
+              <span class="verdict ${vCls}">${verdict}</span>
+            </div>
+            <div class="rc-meta">Screened · ${matched.length} keywords matched · ${missing.length} missing</div>
+          </div>
+          <div class="rc-score-block">
+            <span class="rc-score-big ${cls}">${score.toFixed(1)}<span style="font-size:20px;font-weight:300">%</span></span>
+            <div class="rc-score-label">Match Score</div>
+          </div>
+        </div>
+        <div class="rc-progress"><div class="rc-bar ${cls}" data-w="${score}"></div></div>
+        <div class="rc-body">
+          <div class="kw-section">
+            <div class="kw-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--sage2)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Matched Keywords (${matched.length})
+            </div>
+            <div class="kw-pills">${matched.map(k=>`<span class="kw-pill match">${k}</span>`).join('')||'<span style="font-size:12px;color:var(--ink4)">none matched</span>'}</div>
+          </div>
+          <div class="kw-section">
+            <div class="kw-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Missing Keywords (${missing.length})
+            </div>
+            <div class="kw-pills">${missing.map(k=>`<span class="kw-pill miss">${k}</span>`).join('')||'<span style="font-size:12px;color:var(--ink4)">nothing missing</span>'}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    setTimeout(()=>{
+      document.querySelectorAll('.rc-bar').forEach(b=>{
+        const w=b.dataset.w;
+        b.style.width='0';
+        requestAnimationFrame(()=>setTimeout(()=>b.style.width=w+'%',50));
+      });
+    },100);
+  }catch(e){
+    el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-title">Error loading results</div><div class="empty-sub">Check that the server is running</div></div>';
+  }
+}
+
+// ── COMPARE
+async function loadCompareOptions(){
+  const jobId=document.getElementById('compareJob').value;
+  if(!jobId) return;
+  try{
+    const r=await fetch(`${API}/jobs/${jobId}/results`);
+    const d=await r.json();
+    const results=d.results||[];
+    const opts='<option value="">— Select —</option>'+results.map(r=>`<option value="${r.resume_id}" data-score="${r.score}" data-matched="${(r.matched_keywords||[]).join(',')}" data-missing="${(r.missing_keywords||[]).join(',')}" data-name="${r.name}">${r.name} (${parseFloat(r.score||0).toFixed(1)}%)</option>`).join('');
+    document.getElementById('compareA').innerHTML=opts;
+    document.getElementById('compareB').innerHTML=opts;
+  }catch(e){}
+}
+
+function doCompare(){
+  const selA=document.getElementById('compareA');
+  const selB=document.getElementById('compareB');
+  const optA=selA.options[selA.selectedIndex];
+  const optB=selB.options[selB.selectedIndex];
+  if(!optA.value||!optB.value){ toast('Select two candidates','error'); return; }
+  const A={name:optA.dataset.name,score:parseFloat(optA.dataset.score)||0,matched:(optA.dataset.matched||'').split(',').filter(Boolean),missing:(optA.dataset.missing||'').split(',').filter(Boolean)};
+  const B={name:optB.dataset.name,score:parseFloat(optB.dataset.score)||0,matched:(optB.dataset.matched||'').split(',').filter(Boolean),missing:(optB.dataset.missing||'').split(',').filter(Boolean)};
+  const onlyA=A.matched.filter(k=>!B.matched.includes(k));
+  const onlyB=B.matched.filter(k=>!A.matched.includes(k));
+  const both=A.matched.filter(k=>B.matched.includes(k));
+  const winner=A.score>=B.score?A.name:B.name;
+  document.getElementById('compareResult').innerHTML=`
+    <div class="card">
+      <div class="card-header"><div class="card-title">Comparison: ${A.name} vs ${B.name}</div><span class="chip chip-green">Winner: ${winner}</span></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:start">
+          <div>
+            <div style="font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px">${A.name}</div>
+            <div style="font-family:var(--serif);font-size:36px;font-weight:600;color:${A.score>=60?'var(--sage2)':A.score>=30?'var(--amber)':'var(--rose)'}">${A.score.toFixed(1)}%</div>
+            <div style="height:4px;background:var(--line);border-radius:2px;margin:12px 0"><div style="height:100%;width:${A.score}%;background:var(--sage2);border-radius:2px;transition:width 1s ease"></div></div>
+            <div class="kw-label" style="margin-top:12px">Unique keywords</div>
+            <div class="kw-pills">${onlyA.map(k=>`<span class="kw-pill match">${k}</span>`).join('')||'<span style="font-size:12px;color:var(--ink4)">none unique</span>'}</div>
+          </div>
+          <div style="text-align:center;padding-top:40px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--ink4);margin-bottom:8px">SHARED</div>
+            ${both.map(k=>`<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);padding:2px 0">${k}</div>`).join('')||'<div style="font-size:12px;color:var(--ink4)">none</div>'}
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px">${B.name}</div>
+            <div style="font-family:var(--serif);font-size:36px;font-weight:600;color:${B.score>=60?'var(--sage2)':B.score>=30?'var(--amber)':'var(--rose)'}">${B.score.toFixed(1)}%</div>
+            <div style="height:4px;background:var(--line);border-radius:2px;margin:12px 0"><div style="height:100%;width:${B.score}%;background:var(--sage2);border-radius:2px;transition:width 1s ease;margin-left:auto"></div></div>
+            <div class="kw-label" style="margin-top:12px;text-align:right">Unique keywords</div>
+            <div class="kw-pills" style="justify-content:flex-end">${onlyB.map(k=>`<span class="kw-pill match">${k}</span>`).join('')||'<span style="font-size:12px;color:var(--ink4)">none unique</span>'}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── EXPORT
+async function exportResults(){
+  const jobId=document.getElementById('resultsJob')?.value;
+  if(!jobId){ toast('Select a job to export','error'); return; }
+  try{
+    const r=await fetch(`${API}/jobs/${jobId}/results`);
+    const d=await r.json();
+    const results=d.results||[];
+    if(!results.length){ toast('No results to export','error'); return; }
+    const csv=['Rank,Name,Score,Verdict,Matched Keywords,Missing Keywords',
+      ...results.map((r,i)=>{
+        const s=parseFloat(r.score)||0;
+        const verdict=s>=60?'Strong Hire':s>=30?'Consider':'Not a Fit';
+        return `${r.rank_pos||i+1},"${r.name||'Unknown'}",${s.toFixed(1)}%,"${verdict}","${(r.matched_keywords||[]).join('; ')}","${(r.missing_keywords||[]).join('; ')}"`;
+      })
+    ].join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`screening-results-job-${jobId}.csv`;
+    a.click();
+    toast('Results exported as CSV','success');
+  }catch(e){ toast('Export failed','error'); }
+}
+</script>
+</body>
+</html>
