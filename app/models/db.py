@@ -8,7 +8,7 @@ def get_connection():
         user=Config.DB_USER,
         password=Config.DB_PASSWORD,
         database=Config.DB_NAME,
-        ssl={'ssl': {}},
+        ssl_disabled=False,
         cursorclass=pymysql.cursors.DictCursor
     )
 
@@ -18,12 +18,11 @@ def init_db():
         port=int(Config.DB_PORT),
         user=Config.DB_USER,
         password=Config.DB_PASSWORD,
-        ssl={'ssl': {}},
+        database=Config.DB_NAME,
+        ssl_disabled=False,
         cursorclass=pymysql.cursors.DictCursor
     )
     cursor = conn.cursor()
-    cursor.execute("CREATE DATABASE IF NOT EXISTS resume_screener")
-    cursor.execute("USE resume_screener")
     cursor.execute('''CREATE TABLE IF NOT EXISTS jobs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(200) NOT NULL,
