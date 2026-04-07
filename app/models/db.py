@@ -35,7 +35,7 @@ def init_db():
         name VARCHAR(200),
         content TEXT NOT NULL,
         score FLOAT DEFAULT 0,
-        status ENUM('queued','scored','failed') DEFAULT "queued",
+        status ENUM('queued','scored','failed') DEFAULT 'queued',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (job_id) REFERENCES jobs(id)
     )''')
