@@ -37,3 +37,14 @@ def get_job(job_id):
     if not job:
         return jsonify({'error': 'Job not found'}), 404
     return jsonify({'job': job})
+
+@jobs_bp.route('/jobs/<int:job_id>', methods=['DELETE'])
+def delete_job(job_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM results WHERE job_id = %s', (job_id,))
+    cursor.execute('DELETE FROM resumes WHERE job_id = %s', (job_id,))
+    cursor.execute('DELETE FROM jobs WHERE id = %s', (job_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Job deleted'})

@@ -1,4 +1,5 @@
 import pymysql
+import json
 from config import Config
 
 def get_connection():
@@ -45,6 +46,8 @@ def init_db():
         resume_id INT NOT NULL,
         score FLOAT,
         reasoning TEXT,
+        matched_keywords TEXT,
+        missing_keywords TEXT,
         rank_pos INT,
         FOREIGN KEY (job_id) REFERENCES jobs(id),
         FOREIGN KEY (resume_id) REFERENCES resumes(id)
